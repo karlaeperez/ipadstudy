@@ -1,13 +1,75 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Image Display</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        #coords {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        #json-output {
+            margin-top: 20px;
+            font-size: 16px;
+            white-space: pre-wrap; /* Preserves formatting */
+        }
+    </style>
 </head>
 <body>
-    <h1>TESTING</h1>
-    <a href="/ipadstudy/contact.html">contact</a>
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusantium eaque eveniet pariatur expedita, dignissimos doloribus asperiores ratione cupiditate omnis praesentium ad illum placeat modi adipisci amet repellat accusamus. Voluptates, corporis!</p>
+    <h1>Image from URL</h1>
+    <img id="image" src="https://github.com/karlaeperez/lookit-stimuli-template/blob/master/img/T10-A-P.png?raw=true" alt="Image from URL">
+    <div id="coords">Click coordinates will appear here</div>
+    <div id="json-output">JSON output will appear here</div>
+    <button id="save-button">Save Data</button>
+
+    <script>
+        const img = document.getElementById('image');
+        const coords = document.getElementById('coords');
+        const jsonOutput = document.getElementById('json-output');
+        const saveButton = document.getElementById('save-button');
+        const clickData = [];
+
+        img.addEventListener('click', function(event) {
+            const rect = img.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            const coordObject = { x: x, y: y };
+            clickData.push(coordObject);
+
+            coords.textContent = `X: ${x}, Y: ${y}`;
+            jsonOutput.textContent = JSON.stringify(clickData, null, 2);
+        });
+
+        saveButton.addEventListener('click', function() {
+            fetch('/save-coordinates', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(clickData)
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
 </body>
 </html>
