@@ -41,11 +41,16 @@
         const jsonOutput = document.getElementById('json-output');
         const saveButton = document.getElementById('save-button');
         const clickData = [];
+        const gridSize = 10; // Define the size of each grid space
 
         img.addEventListener('click', function(event) {
             const rect = img.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
+            let x = event.clientX - rect.left;
+            let y = event.clientY - rect.top;
+
+            // Map the click coordinates to the nearest grid space
+            x = Math.floor(x / gridSize) * gridSize;
+            y = Math.floor(y / gridSize) * gridSize;
 
             const coordObject = { x: x, y: y };
             clickData.push(coordObject);
