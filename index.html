@@ -219,7 +219,23 @@
         response_allowed_while_playing: false,
     };
 
-    timeline.push(tutorial);
+    //timeline.push(tutorial);
+
+    var inclusion_trial = {
+        type: jsPsychImageFeedbackTask,
+        image_positions: 'coordinates_inclusion.json',
+        happy_sound: 'sounds/happy_sound.mp3',
+        bad_sound: 'sounds/balloon_pop.mp3',
+        no_feedback_sound: 'sounds/balloon_inflating.mp3',
+        feedback_images: {
+            single_tap: 'videos/inflating_balloon_blue.gif',
+            multiple_taps: 'videos/popping_balloon_blue.gif',
+            no_tap: 'images/deflated_balloon_blue.png'
+        },
+        inclusion_phase: true  
+    };
+
+    timeline.push(inclusion_trial);
 
     var testAndFeedbackTrials = [
         { type: jsPsychImageFeedbackTask, image_positions: 'coordinates1.json', happy_sound: 'sounds/happy_sound.mp3', bad_sound: 'sounds/balloon_pop.mp3', no_feedback_sound: 'sounds/balloon_inflating.mp3', feedback_images: { single_tap: 'videos/inflating_balloon_blue.gif', multiple_taps: 'videos/popping_balloon_blue.gif', no_tap: 'images/deflated_balloon_blue.png' } },
