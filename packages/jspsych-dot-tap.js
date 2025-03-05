@@ -1,7 +1,6 @@
 var jsPsychImageFeedbackTask = (function (jspsych) {
   "use strict";
 
-  // The same plugin info as before:
   const info = {
     name: "image-feedback-task",
     parameters: {
@@ -38,6 +37,12 @@ var jsPsychImageFeedbackTask = (function (jspsych) {
           no_tap: 'images/deflated_balloon.png'
         },
         description: 'Object containing paths to feedback images for different tap scenarios.'
+      },
+      inclusion_phase: {
+        type: jspsych.ParameterType.BOOL,
+        pretty_name: 'Inclusion Phase',
+        default: false,
+        description: 'If true, the trial requires each image to be tapped exactly once; otherwise the trial repeats.'
       }
     }
   };
@@ -266,7 +271,7 @@ var jsPsychImageFeedbackTask = (function (jspsych) {
      */
     runFeedbackPhase(display_element, trial, data, image_clicks, tapOrder) {
       const { ctx, container, canvas } = this.createCanvas(display_element);
-
+    
       // Decide which sound to play
       let feedbackSound;
       if (Object.values(image_clicks).some(clicks => clicks > 1)) {
@@ -274,7 +279,7 @@ var jsPsychImageFeedbackTask = (function (jspsych) {
       } else {
         feedbackSound = trial.happy_sound;
       }
-
+    
       // Play from cache if available
       if (feedbackSound) {
         const soundRef = this.getOrCreateAudio(feedbackSound);
@@ -285,7 +290,7 @@ var jsPsychImageFeedbackTask = (function (jspsych) {
           });
         }
       }
-
+    
       const cellSize = 60;
       const getScale = () => {
         const rect = canvas.getBoundingClientRect();
@@ -293,11 +298,11 @@ var jsPsychImageFeedbackTask = (function (jspsych) {
         const scaleY = rect.height / canvas.height;
         return { scaleX, scaleY };
       };
-
+    
       // Tapped indices
       const tappedIndices = tapOrder.map(t => (typeof t === 'object' ? t.index : t));
-
-      // Show feedback for tapped
+    
+      // Show feedback for tapped images
       data.positions.forEach((position, index) => {
         if (tappedIndices.includes(index)) {
           let imgSrc;
@@ -311,18 +316,18 @@ var jsPsychImageFeedbackTask = (function (jspsych) {
             gifElement.src = imgSrc + '?' + new Date().getTime(); // cache-buster
             gifElement.style.position = 'absolute';
             gifElement.style.zIndex = '10';
-
+    
             const { scaleX, scaleY } = getScale();
             gifElement.style.left = (position.x * scaleX) + 'px';
             gifElement.style.top  = (position.y * scaleY) + 'px';
             gifElement.style.width  = (cellSize * scaleX) + 'px';
             gifElement.style.height = (cellSize * scaleY) + 'px';
-
+    
             container.appendChild(gifElement);
           }
         }
       });
-
+    
       // Draw no-tap balloons on canvas
       data.positions.forEach((position, index) => {
         if (!tappedIndices.includes(index)) {
@@ -333,15 +338,54 @@ var jsPsychImageFeedbackTask = (function (jspsych) {
           };
         }
       });
-
-      // Next button in feedback
-      this.addFeedbackButton(display_element, () => {
-        this.jsPsych.finishTrial({
-          image_clicks: image_clicks,
-          tap_order: tapOrder
+    
+      // If this is an inclusion phase, check if each balloon was tapped exactly once.
+      if (trial.inclusion_phase) {
+        let allTappedOnce = true;
+        // Ensure that each position has an entry in image_clicks equal to exactly one.
+        data.positions.forEach((position, index) => {
+          if (image_clicks[index] !== 1) {
+            allTappedOnce = false;
+          }
         });
-      }, false);
-    }
+        
+        if (allTappedOnce) {
+          // All balloons tapped exactly once: allow the trial to finish.
+          this.addFeedbackButton(display_element, () => {
+            // Optionally mark inclusion success
+            this.jsPsych.finishTrial({
+              image_clicks: image_clicks,
+              tap_order: tapOrder,
+              inclusion_passed: true
+            });
+          }, false);
+        } else {
+          // If the criteria are not met, notify the user and reset the phase.
+          let msg = document.createElement('p');
+          msg.innerText = "You must tap each balloon exactly once. Please try again.";
+          container.appendChild(msg);
+          this.addFeedbackButton(display_element, () => {
+            // Reset state variables
+            image_clicks = {};
+            tapOrder = [];
+            // Clear display element content
+            display_element.innerHTML = "";
+            // Retrieve the no_feedback_sound from cache (if available)
+            const no_feedback_sound = this.getOrCreateAudio(trial.no_feedback_sound);
+            // Restart the test phase using the same coordinates (data)
+            this.runTestPhase(display_element, trial, data, image_clicks, tapOrder, no_feedback_sound, false);
+          }, false);
+        }
+      } else {
+        // Normal (non-inclusion) trial: add the finish button.
+        this.addFeedbackButton(display_element, () => {
+          this.jsPsych.finishTrial({
+            image_clicks: image_clicks,
+            tap_order: tapOrder
+          });
+        }, false);
+      }
+    }    
   }
 
   // Attach the plugin info to the class
