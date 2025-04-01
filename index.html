@@ -182,14 +182,14 @@
 
     var preload = {
     type: jsPsychPreload,
-    audio: [
+    audio: [ 
       'sounds/happy_sound.mp3',
       'sounds/bad_sound.mp3',
       'sounds/balloon_pop.mp3',
       'sounds/balloon_inflating.mp3'
         ]
     };
-
+ 
     timeline.push(preload); 
 
 
@@ -219,7 +219,16 @@
         response_allowed_while_playing: false,
     };
 
-    //timeline.push(tutorial);
+    timeline.push(tutorial);
+
+    var inclusion_instructions = {
+        type: jsPsychVideoButtonResponse,
+        stimulus: ['videos/inclusion_instructions.mp4'],
+        choices: ['Next'],
+        response_allowed_while_playing: false,
+    };
+
+    timeline.push(inclusion_instructions);
 
     var inclusion_trial = {
         type: jsPsychImageFeedbackTask,
@@ -236,6 +245,15 @@
     };
 
     timeline.push(inclusion_trial);
+
+    var ready_to_start = {
+        type: jsPsychVideoButtonResponse,
+        stimulus: ['videos/ready_to_start.mp4'],
+        choices: ['Next'],
+        response_allowed_while_playing: false,
+    };
+
+    timeline.push(ready_to_start);
 
     var testAndFeedbackTrials = [
         { type: jsPsychImageFeedbackTask, image_positions: 'coordinates1.json', happy_sound: 'sounds/happy_sound.mp3', bad_sound: 'sounds/balloon_pop.mp3', no_feedback_sound: 'sounds/balloon_inflating.mp3', feedback_images: { single_tap: 'videos/inflating_balloon_blue.gif', multiple_taps: 'videos/popping_balloon_blue.gif', no_tap: 'images/deflated_balloon_blue.png' } },
